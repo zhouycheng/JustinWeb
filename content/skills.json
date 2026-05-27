@@ -1,0 +1,158 @@
+[
+  {
+    "name": {
+      "zh": "Flutter",
+      "en": "Flutter"
+    },
+    "level": {
+      "zh": "核心栈",
+      "en": "Core stack"
+    },
+    "note": {
+      "zh": "主要技术栈，从项目架构设计到成果物交付",
+      "en": "The main cross-platform delivery stack right now, well suited for business apps, internal tools, and lightweight product launches."
+    },
+    "topics": {
+      "zh": [
+        "组件封装",
+        "状态管理",
+        "性能调优"
+      ],
+      "en": [
+        "Component abstraction",
+        "State management",
+        "Performance tuning"
+      ]
+    }
+  },
+  {
+    "name": {
+      "zh": "Dart",
+      "en": "Dart"
+    },
+    "level": {
+      "zh": "日常主语言",
+      "en": "Primary daily language"
+    },
+    "note": {
+      "zh": "围绕 Flutter 长期使用，主要负责业务建模、异步流程和工程结构整理。",
+      "en": "Used long term around Flutter, mainly for domain modeling, async flows, and keeping the project structure clean."
+    },
+    "topics": {
+      "zh": [
+        "异步编排",
+        "泛型封装",
+        "代码规范"
+      ],
+      "en": [
+        "Async orchestration",
+        "Generic abstractions",
+        "Code standards"
+      ]
+    }
+  },
+  {
+    "name": {
+      "zh": "Android",
+      "en": "Android"
+    },
+    "level": {
+      "zh": "原生能力",
+      "en": "Native capability"
+    },
+    "note": {
+      "zh": "用于处理原生桥接、机型问题排查，以及复杂业务场景下的能力补位。",
+      "en": "Used for native bridges, device-specific debugging, and filling gaps when product scenarios need lower-level platform support."
+    },
+    "topics": {
+      "zh": [
+        "Jetpack",
+        "原生调试",
+        "桥接接入"
+      ],
+      "en": [
+        "Jetpack",
+        "Native debugging",
+        "Bridge integration"
+      ]
+    }
+  },
+  {
+    "name": {
+      "zh": "SwiftUI",
+      "en": "SwiftUI"
+    },
+    "level": {
+      "zh": "界面实现",
+      "en": "Interface delivery"
+    },
+    "note": {
+      "zh": "用于 iOS 端轻量页面和原型实现，强调状态驱动和简洁的交互表达。",
+      "en": "Used for lightweight iOS screens and prototypes, with a focus on state-driven UI and concise interaction design."
+    },
+    "topics": {
+      "zh": [
+        "状态驱动",
+        "动画过渡",
+        "列表布局"
+      ],
+      "en": [
+        "State-driven UI",
+        "Motion transitions",
+        "List layouts"
+      ]
+    }
+  },
+  {
+    "name": {
+      "zh": "Uniapp",
+      "en": "Uniapp"
+    },
+    "level": {
+      "zh": "业务快交付",
+      "en": "Fast business delivery"
+    },
+    "note": {
+      "zh": "适合表单密集型小程序和轻应用项目，重点在流程稳定和提交流畅。",
+      "en": "A pragmatic fit for form-heavy mini-programs and lightweight apps where stable flows and smooth submissions matter most."
+    },
+    "topics": {
+      "zh": [
+        "表单流",
+        "上传流程",
+        "业务页面"
+      ],
+      "en": [
+        "Form flows",
+        "Upload flows",
+        "Business pages"
+      ]
+    }
+  },
+  {
+    "name": {
+      "zh": "Spring Boot",
+      "en": "Spring Boot"
+    },
+    "level": {
+      "zh": "接口联调",
+      "en": "API integration"
+    },
+    "note": {
+      "zh": "主要用于后台占位和接口支撑，服务于客户端联调与基础业务能力实现。",
+      "en": "Mainly used for backend scaffolding and API support to unblock client integration and basic business capabilities."
+    },
+    "topics": {
+      "zh": [
+        "REST API",
+        "权限基础",
+        "CRUD 能力"
+      ],
+      "en": [
+        "REST APIs",
+        "Basic auth",
+        "CRUD support"
+      ]
+    }
+  }
+]
