@@ -2,7 +2,6 @@
 
 # dependencies
 /node_modules
-/admin/node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -16,7 +15,6 @@
 
 # next.js
 /.next/
-/admin/.next/
 /out/
 /.old/
 
@@ -48,6 +46,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-admin/next-env.d.ts
 
 /design/
