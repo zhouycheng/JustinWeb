@@ -246,6 +246,8 @@ html[data-theme="dark"] {
 html {
   background: var(--page-background);
   color-scheme: light;
+  scroll-behavior: smooth;
+  overflow: hidden;
 }
 
 body {
@@ -257,6 +259,18 @@ body {
   -webkit-user-select: none;
   isolation: isolate;
   transition: color 220ms ease;
+  overflow: hidden;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.snap-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.snap-container {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 
 .site-app-shell {

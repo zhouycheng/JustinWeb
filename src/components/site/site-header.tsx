@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import type { Locale } from "@/lib/i18n/config";
 import type { SiteNavigationItem } from "@/lib/site/content";
@@ -25,6 +26,53 @@ function isActivePath(pathname: string, href: string): boolean {
 
 export function SiteHeader({ brandLabel, avatarLabel, locale, navItems }: SiteHeaderProps) {
   const pathname = usePathname();
+  const [activeSection, setActiveSection] = useState<string>("about");
+
+  useEffect(() => {
+    // Only run on home page
+    if (pathname !== "/") return;
+
+    const sections = ["about", "skills", "projects", "articles"];
+    const observers = new Map<string, IntersectionObserver>();
+
+    sections.forEach((sectionId) => {
+      const element = document.getElementById(sectionId);
+      if (!element) return;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+              setActiveSection(sectionId);
+            }
+          });
+        },
+        {
+          threshold: [0.5],
+          rootMargin: "-10% 0px -10% 0px",
+        }
+      );
+
+      observer.observe(element);
+      observers.set(sectionId, observer);
+    });
+
+    return () => {
+      observers.forEach((observer) => observer.disconnect());
+    };
+  }, [pathname]);
+
+  const handleNavClick = (href: string) => {
+    if (pathname !== "/") return;
+
+    // Extract section id from href
+    const sectionId = href === "/" ? "about" : href.replace("/", "");
+    const element = document.getElementById(sectionId);
+
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
   return (
     <header className="site-header-shell relative z-20 px-6 pb-4 pt-5 md:px-10 md:pb-0 lg:px-12">
@@ -46,21 +94,24 @@ export function SiteHeader({ brandLabel, avatarLabel, locale, navItems }: SiteHe
           />
         </div>
 
-        <nav className="col-span-2 row-start-2 flex items-center gap-2 overflow-x-auto font-home-system text-[13px] text-[var(--page-heading)] md:col-span-1 md:col-start-2 md:row-start-1 md:justify-self-center md:text-[14px]">
+        <nav className="col-span-2 row-start-2 flex items-center gap-2 overflow-visible px-1 py-1 font-home-system text-[13px] text-[var(--page-heading)] md:col-span-1 md:col-start-2 md:row-start-1 md:justify-self-center md:text-[14px]">
           {navItems.map((item) => {
-            const active = isActivePath(pathname, item.href);
+            const isHome = pathname === "/";
+            const sectionId = item.href === "/" ? "about" : item.href.replace("/", "");
+            const active = isHome ? activeSection === sectionId : isActivePath(pathname, item.href);
 
             return (
-              <Link
+              <button
                 key={item.href}
-                href={item.href}
+                type="button"
+                onClick={() => handleNavClick(item.href)}
                 className={[
                   "site-nav-link shrink-0 rounded-xl px-4 py-3 leading-none",
                   active ? "site-nav-link--active font-medium" : "site-nav-link--idle font-normal",
                 ].join(" ")}
               >
                 {item.label}
-              </Link>
+              </button>
             );
           })}
         </nav>

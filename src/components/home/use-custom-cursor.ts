@@ -52,7 +52,7 @@ export function useCustomCursor<T extends HTMLElement>(
     }
 
     const mediaQuery = window.matchMedia(
-      "(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)"
+      "(hover: hover) and (pointer: fine)"
     );
     let isActive = false;
 
