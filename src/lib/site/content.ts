@@ -38,7 +38,10 @@ export type SiteContent = {
 };
 
 const NAVIGATION_HREFS = [
-  { key: "about", href: "/" },
+  { key: "about", href: "#about" },
+  { key: "skills", href: "#skills" },
+  { key: "projects", href: "#projects" },
+  { key: "articles", href: "#articles" },
 ] as const;
 
 const SITE_COPY = {
@@ -53,6 +56,9 @@ const SITE_COPY = {
       avatarLabel: "Justin 头像",
       labels: {
         about: "关于",
+        skills: "技能",
+        projects: "项目",
+        articles: "文稿",
       },
     },
     floatingActions: {
@@ -87,6 +93,9 @@ const SITE_COPY = {
       avatarLabel: "Justin avatar",
       labels: {
         about: "About",
+        skills: "Skills",
+        projects: "Projects",
+        articles: "Articles",
       },
     },
     floatingActions: {

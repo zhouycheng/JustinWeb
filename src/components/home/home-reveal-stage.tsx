@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { HeroFacingContent, HeroFacingVariant } from "@/lib/site/content";
 
 import { CustomCursor } from "./custom-cursor";
@@ -6,19 +7,34 @@ import { IntroHero } from "./intro-hero";
 
 type HomeRevealStageProps = {
   hero: Record<HeroFacingVariant, HeroFacingContent>;
+  children: ReactNode;
 };
 
-export function HomeRevealStage({ hero }: HomeRevealStageProps) {
+export function HomeRevealStage({ hero, children }: HomeRevealStageProps) {
   return (
     <CustomCursor>
-      <div className="home-scene-layer home-scene-layer--base">
+      <div aria-hidden="true" className="home-scene-layer home-scene-layer--base">
         <DotGridBackground variant="primary" />
-        <IntroHero content={hero.primary} variant="primary" enableMotionSensor />
       </div>
 
-      <div aria-hidden="true" className="home-scene-layer home-scene-layer--reveal">
-        <DotGridBackground variant="reveal" />
-        <IntroHero content={hero.reveal} variant="reveal" />
+      <div aria-hidden="true" className="home-reveal-mask-layer">
+        <div className="home-reveal-mask-backdrop">
+          <DotGridBackground variant="reveal" />
+        </div>
+        <div className="home-hero-reveal-layer">
+          <IntroHero content={hero.reveal} variant="reveal" />
+        </div>
+      </div>
+
+      <div className="home-scene-layer home-scene-layer--content">
+        <IntroHero
+          id="about"
+          className="snap-start snap-always"
+          content={hero.primary}
+          variant="primary"
+          enableMotionSensor
+        />
+        {children}
       </div>
     </CustomCursor>
   );

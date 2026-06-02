@@ -9,15 +9,31 @@ type IntroHeroProps = {
   content: HeroFacingContent;
   variant: HeroFacingVariant;
   enableMotionSensor?: boolean;
+  id?: string;
+  className?: string;
 };
 
-export function IntroHero({ content, variant, enableMotionSensor = false }: IntroHeroProps) {
+export function IntroHero({
+  content,
+  variant,
+  enableMotionSensor = false,
+  id,
+  className,
+}: IntroHeroProps) {
   const motionSensorRef = usePointerFacingEffect<HTMLDivElement>({
     enabled: enableMotionSensor,
   });
 
   return (
-    <section className="relative z-10 flex min-h-screen items-center justify-center px-6 pb-24 pt-28 md:px-10 md:pb-28 md:pt-32">
+    <section
+      id={id}
+      className={[
+        "relative z-10 flex min-h-screen items-center justify-center px-6 pb-24 pt-28 md:px-10 md:pb-28 md:pt-32",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <div className="hero-pointer-stage flex max-w-5xl flex-col items-center text-center">
         <div
           ref={enableMotionSensor ? motionSensorRef : undefined}

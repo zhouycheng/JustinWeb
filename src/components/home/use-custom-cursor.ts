@@ -99,10 +99,9 @@ export function useCustomCursor<T extends HTMLElement>(
         return;
       }
 
-      const rect = stage.getBoundingClientRect();
       const target = targetRef.current;
-      target.x = event.clientX - rect.left;
-      target.y = event.clientY - rect.top;
+      target.x = event.clientX;
+      target.y = event.clientY;
       target.opacity = 1;
 
       queueFrame();

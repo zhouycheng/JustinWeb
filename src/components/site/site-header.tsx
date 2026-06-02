@@ -16,6 +16,30 @@ type SiteHeaderProps = {
   navItems: SiteNavigationItem[];
 };
 
+const HOME_SECTION_IDS = ["about", "skills", "projects", "articles"] as const;
+
+type HomeSectionId = (typeof HOME_SECTION_IDS)[number];
+
+function isHomeSectionId(value: string): value is HomeSectionId {
+  return HOME_SECTION_IDS.includes(value as HomeSectionId);
+}
+
+function getSectionIdFromHref(href: string): HomeSectionId | null {
+  if (href === "/") {
+    return "about";
+  }
+
+  const sectionId = href.includes("#")
+    ? href.split("#").at(-1)
+    : href.replace(/^\/+/, "");
+
+  if (!sectionId || !isHomeSectionId(sectionId)) {
+    return null;
+  }
+
+  return sectionId;
+}
+
 function isActivePath(pathname: string, href: string): boolean {
   if (href === "/") {
     return pathname === "/";
@@ -32,8 +56,20 @@ export function SiteHeader({ brandLabel, avatarLabel, locale, navItems }: SiteHe
     // Only run on home page
     if (pathname !== "/") return;
 
-    const sections = ["about", "skills", "projects", "articles"];
+    const sections = navItems
+      .map((item) => getSectionIdFromHref(item.href))
+      .filter((sectionId): sectionId is HomeSectionId => sectionId !== null);
     const observers = new Map<string, IntersectionObserver>();
+    const scrollRoot = document.querySelector<HTMLElement>(".snap-container");
+    let hashFrame: number | null = null;
+
+    const hashSectionId = getSectionIdFromHref(window.location.hash);
+    if (hashSectionId) {
+      hashFrame = window.requestAnimationFrame(() => {
+        setActiveSection(hashSectionId);
+        document.getElementById(hashSectionId)?.scrollIntoView({ block: "start" });
+      });
+    }
 
     sections.forEach((sectionId) => {
       const element = document.getElementById(sectionId);
@@ -48,6 +84,7 @@ export function SiteHeader({ brandLabel, avatarLabel, locale, navItems }: SiteHe
           });
         },
         {
+          root: scrollRoot,
           threshold: [0.5],
           rootMargin: "-10% 0px -10% 0px",
         }
@@ -58,19 +95,33 @@ export function SiteHeader({ brandLabel, avatarLabel, locale, navItems }: SiteHe
     });
 
     return () => {
+      if (hashFrame !== null) {
+        window.cancelAnimationFrame(hashFrame);
+      }
+
       observers.forEach((observer) => observer.disconnect());
     };
-  }, [pathname]);
+  }, [navItems, pathname]);
 
   const handleNavClick = (href: string) => {
-    if (pathname !== "/") return;
+    const sectionId = getSectionIdFromHref(href);
+    if (!sectionId) return;
 
-    // Extract section id from href
-    const sectionId = href === "/" ? "about" : href.replace("/", "");
+    if (pathname !== "/") {
+      window.location.assign(sectionId === "about" ? "/" : `/#${sectionId}`);
+      return;
+    }
+
     const element = document.getElementById(sectionId);
 
     if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      setActiveSection(sectionId);
+      element.scrollIntoView({
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+        block: "start",
+      });
+      window.history.replaceState(null, "", sectionId === "about" ? "/" : `#${sectionId}`);
     }
   };
 
@@ -97,14 +148,17 @@ export function SiteHeader({ brandLabel, avatarLabel, locale, navItems }: SiteHe
         <nav className="col-span-2 row-start-2 flex items-center gap-2 overflow-visible px-1 py-1 font-home-system text-[13px] text-[var(--page-heading)] md:col-span-1 md:col-start-2 md:row-start-1 md:justify-self-center md:text-[14px]">
           {navItems.map((item) => {
             const isHome = pathname === "/";
-            const sectionId = item.href === "/" ? "about" : item.href.replace("/", "");
-            const active = isHome ? activeSection === sectionId : isActivePath(pathname, item.href);
+            const sectionId = getSectionIdFromHref(item.href);
+            const active = isHome && sectionId
+              ? activeSection === sectionId
+              : isActivePath(pathname, item.href);
 
             return (
               <button
                 key={item.href}
                 type="button"
                 onClick={() => handleNavClick(item.href)}
+                aria-current={active ? "location" : undefined}
                 className={[
                   "site-nav-link shrink-0 rounded-xl px-4 py-3 leading-none",
                   active ? "site-nav-link--active font-medium" : "site-nav-link--idle font-normal",

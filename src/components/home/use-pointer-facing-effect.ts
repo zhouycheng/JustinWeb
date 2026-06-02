@@ -100,17 +100,11 @@ export function usePointerFacingEffect<T extends HTMLElement>({
     }
 
     const syncMetrics = () => {
-      const element = elementRef.current;
-      if (!element) {
-        return;
-      }
-
-      const rect = element.getBoundingClientRect();
       metricsRef.current = {
-        centerX: rect.left + rect.width / 2,
-        centerY: rect.top + rect.height / 2,
-        halfWidth: Math.max(rect.width / 2, 1),
-        halfHeight: Math.max(rect.height / 2, 1),
+        centerX: window.innerWidth / 2,
+        centerY: window.innerHeight / 2,
+        halfWidth: Math.max(window.innerWidth / 2, 1),
+        halfHeight: Math.max(window.innerHeight / 2, 1),
       };
     };
 
