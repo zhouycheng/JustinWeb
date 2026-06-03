@@ -9,6 +9,13 @@ const ACTIVITY_ENTRIES = [
     },
   },
   {
+    aliases: ["codex"],
+    text: {
+      zh: "正在用 Codex 协作开发",
+      en: "Working with Codex",
+    },
+  },
+  {
     aliases: ["kiro"],
     text: {
       zh: "正在用 Kiro 工作",
@@ -27,6 +34,13 @@ const ACTIVITY_ENTRIES = [
     text: {
       zh: "正在处理微信消息",
       en: "Replying in WeChat",
+    },
+  },
+  {
+    aliases: ["微信开发者工具", "wechat devtools", "wechat developer tools"],
+    text: {
+      zh: "正在调试小程序",
+      en: "Debugging a mini program",
     },
   },
   {

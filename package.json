@@ -8,6 +8,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
+    "monitor:activity:setup": "node scripts/setup-activity-monitor.mjs",
     "monitor:activity": "node scripts/activity-monitor.mjs"
   },
   "dependencies": {

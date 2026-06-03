@@ -30,6 +30,9 @@ const REQUEST_TIMEOUT_MS = Number(
 
 if (!MONITOR_TOKEN) {
   console.error("[activity-monitor] ACTIVITY_MONITOR_TOKEN is required.");
+  console.error(
+    "[activity-monitor] Run `npm run monitor:activity:setup`, then restart `npm run dev`."
+  );
   process.exit(1);
 }
 
@@ -51,8 +54,8 @@ try
     end try
     return localizedName & "||" & (visibleWindowCount as string)
   end tell
-on error
-  return "||0"
+on error errMsg
+  return "__ERROR__||" & (errMsg as string)
 end try
 `;
 
@@ -67,7 +70,15 @@ async function readForegroundActivity() {
     timeout: 3_000,
   });
 
-  const [rawAppName = ""] = stdout.trim().split("||");
+  const output = stdout.trim();
+  if (output.startsWith("__ERROR__||")) {
+    const message = output.slice("__ERROR__||".length).trim();
+    throw new Error(
+      `osascript failed${message ? `: ${message}` : ""}. Check macOS Accessibility permissions.`
+    );
+  }
+
+  const [rawAppName = ""] = output.split("||");
   const appName = rawAppName.trim() || null;
 
   return {
@@ -79,11 +90,20 @@ async function readForegroundActivity() {
   };
 }
 
-async function readResponseText(response) {
+async function readResponseBody(response) {
   try {
-    return await response.text();
+    const text = await response.text();
+    if (!text) {
+      return { json: null, text: "" };
+    }
+
+    try {
+      return { json: JSON.parse(text), text };
+    } catch {
+      return { json: null, text };
+    }
   } catch {
-    return "";
+    return { json: null, text: "" };
   }
 }
 
@@ -105,10 +125,12 @@ async function pushActivity(payload) {
       signal: controller.signal,
     });
 
+    const body = await readResponseBody(response);
     if (!response.ok) {
-      const body = await readResponseText(response);
-      throw new Error(`HTTP ${response.status}${body ? `: ${body}` : ""}`);
+      throw new Error(`HTTP ${response.status}${body.text ? `: ${body.text}` : ""}`);
     }
+
+    return body.json;
   } finally {
     clearTimeout(timeout);
   }
@@ -143,10 +165,18 @@ async function tick() {
     return;
   }
 
-  await pushActivity(activity);
+  const result = await pushActivity(activity);
 
   lastFingerprint = fingerprint;
   lastSentAt = now;
+
+  if (activity.state === "active" && activity.appName && result?.active === false) {
+    console.log(
+      `[activity-monitor] active -> ${activity.appName} (not shown; add it to src/lib/activity/catalog.ts)`
+    );
+    return;
+  }
+
   console.log(
     `[activity-monitor] ${activity.state}${activity.appName ? ` -> ${activity.appName}` : ""}`
   );
