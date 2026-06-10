@@ -8,12 +8,19 @@ import { useCustomCursor } from "./use-custom-cursor";
 type CustomCursorProps = {
   children: ReactNode;
   className?: string;
+  activeTargetSelector?: string;
+  scrollRootSelector?: string;
 };
 
-export function CustomCursor({ children, className }: CustomCursorProps) {
+export function CustomCursor({
+  children,
+  className,
+  activeTargetSelector,
+  scrollRootSelector,
+}: CustomCursorProps) {
   const stageRef = useRef<HTMLDivElement | null>(null);
 
-  useCustomCursor(stageRef);
+  useCustomCursor(stageRef, { activeTargetSelector, scrollRootSelector });
 
   return (
     <div

@@ -12,9 +12,16 @@ type CursorState = {
   opacity: number;
 };
 
+type PointerPosition = {
+  x: number;
+  y: number;
+};
+
 type CustomCursorOptions = {
   size?: number;
   ease?: number;
+  activeTargetSelector?: string;
+  scrollRootSelector?: string;
 };
 
 const INITIAL_CURSOR_STATE: CursorState = {
@@ -37,9 +44,25 @@ function hasVisibleCursorDelta(current: CursorState, target: CursorState) {
   );
 }
 
+function isPointerWithinElement(pointer: PointerPosition, element: HTMLElement) {
+  const rect = element.getBoundingClientRect();
+
+  return (
+    pointer.x >= rect.left &&
+    pointer.x <= rect.right &&
+    pointer.y >= rect.top &&
+    pointer.y <= rect.bottom
+  );
+}
+
 export function useCustomCursor<T extends HTMLElement>(
   stageRef: RefObject<T | null>,
-  { size = 220, ease = 0.16 }: CustomCursorOptions = {}
+  {
+    size = 220,
+    ease = 0.16,
+    activeTargetSelector,
+    scrollRootSelector,
+  }: CustomCursorOptions = {}
 ) {
   const frameRef = useRef<number | null>(null);
   const currentRef = useRef<CursorState>({ ...INITIAL_CURSOR_STATE });
@@ -54,7 +77,12 @@ export function useCustomCursor<T extends HTMLElement>(
     const mediaQuery = window.matchMedia(
       "(hover: hover) and (pointer: fine)"
     );
+    const scrollRoot = scrollRootSelector
+      ? document.querySelector<HTMLElement>(scrollRootSelector)
+      : stage.closest<HTMLElement>(".snap-container");
+    let supportsCustomCursor = false;
     let isActive = false;
+    let lastPointer: PointerPosition | null = null;
 
     const applyCursorState = () => {
       const current = currentRef.current;
@@ -64,6 +92,79 @@ export function useCustomCursor<T extends HTMLElement>(
       stage.style.setProperty("--cursor-scale", current.scale.toFixed(3));
       stage.style.setProperty("--cursor-opacity", current.opacity.toFixed(3));
       stage.style.setProperty("--cursor-radius", `${(size / 2).toFixed(3)}px`);
+    };
+
+    const getActiveTarget = () => {
+      if (!activeTargetSelector) {
+        return null;
+      }
+
+      return stage.querySelector<HTMLElement>(activeTargetSelector);
+    };
+
+    const shouldActivateCursor = () => {
+      if (!supportsCustomCursor) {
+        return false;
+      }
+
+      if (!activeTargetSelector) {
+        return true;
+      }
+
+      const activeTarget = getActiveTarget();
+      return Boolean(
+        lastPointer &&
+          activeTarget &&
+          isPointerWithinElement(lastPointer, activeTarget)
+      );
+    };
+
+    const updateCursorTarget = (pointer: PointerPosition, opacity: number) => {
+      const stageRect = stage.getBoundingClientRect();
+      const target = targetRef.current;
+
+      target.x = pointer.x - stageRect.left;
+      target.y = pointer.y - stageRect.top;
+      target.opacity = opacity;
+    };
+
+    const resetCursorState = (immediate: boolean) => {
+      Object.assign(targetRef.current, INITIAL_CURSOR_STATE);
+
+      if (immediate) {
+        Object.assign(currentRef.current, INITIAL_CURSOR_STATE);
+        applyCursorState();
+        return;
+      }
+
+      queueFrame();
+    };
+
+    const activateCursor = () => {
+      isActive = true;
+      stage.classList.add("has-custom-cursor");
+
+      if (lastPointer) {
+        updateCursorTarget(lastPointer, 1);
+      }
+
+      queueFrame();
+    };
+
+    const deactivateCursor = (immediate: boolean) => {
+      isActive = false;
+      stage.classList.remove("has-custom-cursor");
+      resetCursorState(immediate);
+    };
+
+    const refreshActivation = (immediateReset = true) => {
+      if (shouldActivateCursor()) {
+        activateCursor();
+        return true;
+      }
+
+      deactivateCursor(immediateReset);
+      return false;
     };
 
     const animateCursor = () => {
@@ -95,24 +196,50 @@ export function useCustomCursor<T extends HTMLElement>(
         return;
       }
 
+      lastPointer = {
+        x: event.clientX,
+        y: event.clientY,
+      };
+
       if (isThemeTransitionLocked()) {
         return;
       }
 
-      const target = targetRef.current;
-      target.x = event.clientX;
-      target.y = event.clientY;
-      target.opacity = 1;
-
-      queueFrame();
+      refreshActivation();
     };
 
-    const handlePointerDown = () => {
+    const handlePointerDown = (event: PointerEvent) => {
+      if (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") {
+        return;
+      }
+
+      lastPointer = {
+        x: event.clientX,
+        y: event.clientY,
+      };
+
+      if (!refreshActivation()) {
+        return;
+      }
+
       targetRef.current.scale = 0.94;
       queueFrame();
     };
 
-    const handlePointerUp = () => {
+    const handlePointerUp = (event: PointerEvent) => {
+      if (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") {
+        return;
+      }
+
+      lastPointer = {
+        x: event.clientX,
+        y: event.clientY,
+      };
+
+      if (!refreshActivation()) {
+        return;
+      }
+
       targetRef.current.scale = 1;
       queueFrame();
     };
@@ -122,19 +249,23 @@ export function useCustomCursor<T extends HTMLElement>(
         return;
       }
 
-      targetRef.current.opacity = 0;
-      queueFrame();
+      lastPointer = null;
+      deactivateCursor(false);
+    };
+
+    const handleViewportChange = () => {
+      refreshActivation();
     };
 
     const applyActivation = () => {
-      isActive = mediaQuery.matches;
-      stage.classList.toggle("has-custom-cursor", isActive);
+      supportsCustomCursor = mediaQuery.matches;
 
-      if (!isActive) {
-        Object.assign(targetRef.current, INITIAL_CURSOR_STATE);
-        Object.assign(currentRef.current, INITIAL_CURSOR_STATE);
-        applyCursorState();
+      if (!supportsCustomCursor) {
+        deactivateCursor(true);
+        return;
       }
+
+      refreshActivation();
     };
 
     applyActivation();
@@ -145,6 +276,13 @@ export function useCustomCursor<T extends HTMLElement>(
     window.addEventListener("pointerup", handlePointerUp);
     window.addEventListener("pointerleave", handlePointerLeave);
     window.addEventListener("blur", handlePointerLeave);
+    window.addEventListener("resize", handleViewportChange, { passive: true });
+
+    if (scrollRoot) {
+      scrollRoot.addEventListener("scroll", handleViewportChange, { passive: true });
+    } else {
+      window.addEventListener("scroll", handleViewportChange, { passive: true });
+    }
 
     return () => {
       window.removeEventListener("pointermove", handlePointerMove);
@@ -152,6 +290,14 @@ export function useCustomCursor<T extends HTMLElement>(
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointerleave", handlePointerLeave);
       window.removeEventListener("blur", handlePointerLeave);
+      window.removeEventListener("resize", handleViewportChange);
+
+      if (scrollRoot) {
+        scrollRoot.removeEventListener("scroll", handleViewportChange);
+      } else {
+        window.removeEventListener("scroll", handleViewportChange);
+      }
+
       mediaQuery.removeEventListener("change", applyActivation);
 
       if (frameRef.current !== null) {
@@ -160,5 +306,5 @@ export function useCustomCursor<T extends HTMLElement>(
 
       stage.classList.remove("has-custom-cursor");
     };
-  }, [ease, size, stageRef]);
+  }, [activeTargetSelector, ease, scrollRootSelector, size, stageRef]);
 }

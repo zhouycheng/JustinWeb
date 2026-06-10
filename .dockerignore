@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.gitignore
+*.md
+AGENTS.md
+CLAUDE.md
+.env.local
+.env
+.DS_Store
+.vscode
+output
+scripts
+content

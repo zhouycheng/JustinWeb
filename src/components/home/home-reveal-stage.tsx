@@ -12,7 +12,7 @@ type HomeRevealStageProps = {
 
 export function HomeRevealStage({ hero, children }: HomeRevealStageProps) {
   return (
-    <CustomCursor>
+    <CustomCursor activeTargetSelector="#about" scrollRootSelector=".snap-container">
       <div aria-hidden="true" className="home-scene-layer home-scene-layer--base">
         <DotGridBackground variant="primary" />
       </div>
